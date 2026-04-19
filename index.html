@@ -91,7 +91,8 @@
   <div id="reviewModal" class="fixed inset-0 bg-slate-950 z-[150] hidden flex-col animate-fadeIn">
     
     <!-- Canvas Drawing Layer (Phủ TOÀN BỘ màn hình, vẽ được mọi nơi) -->
-    <canvas id="reviewCanvas" class="fixed inset-0 w-full h-full cursor-crosshair z-30 touch-none"></canvas>
+    <!-- Mặc định pointer-events-none để có thể thao tác với các menu bên dưới -->
+    <canvas id="reviewCanvas" class="fixed inset-0 w-full h-full cursor-crosshair z-30 touch-none pointer-events-none"></canvas>
 
     <!-- Top Bar Nhỏ Gọn (Z-index 40 để nằm trên Canvas) -->
     <div class="relative h-auto min-h-[4rem] py-2 bg-slate-900 border-b border-slate-800 px-4 md:px-6 flex flex-wrap gap-2 justify-between items-center shadow-md z-40">
@@ -106,6 +107,11 @@
 
       <!-- Box Giữa: Drawing Toolbar -->
       <div class="flex items-center space-x-1 md:space-x-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-700 shadow-inner overflow-x-auto max-w-full pointer-events-auto">
+        <!-- Nút Con Trỏ (Thao tác menu) -->
+        <button class="p-1.5 md:p-2 bg-slate-700 rounded-lg text-white tool-btn shadow-inner transition shrink-0" data-tool="pointer" title="Thao tác / Cuộn (Không vẽ)"><i data-lucide="mouse-pointer-2" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+
+        <div class="w-px h-5 bg-slate-700 mx-1 md:mx-2 shrink-0"></div>
+
         <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-red-500 ring-2 ring-white color-btn shadow-sm transition-transform scale-110 shrink-0" data-color="#ef4444"></button>
         <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-blue-500 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform shrink-0" data-color="#3b82f6"></button>
         <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-emerald-400 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform shrink-0" data-color="#34d399"></button>
@@ -114,7 +120,7 @@
         
         <div class="w-px h-5 bg-slate-700 mx-1 md:mx-2 shrink-0"></div>
         
-        <button class="p-1.5 md:p-2 bg-slate-700 rounded-lg text-white tool-btn shadow-inner transition shrink-0" data-tool="pen" title="Bút vẽ"><i data-lucide="pen" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition shrink-0" data-tool="pen" title="Bút vẽ"><i data-lucide="pen" class="w-4 h-4 md:w-5 md:h-5"></i></button>
         <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition shrink-0" data-tool="line" title="Kẻ thẳng"><i data-lucide="minus" class="w-4 h-4 md:w-5 md:h-5"></i></button>
         <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition shrink-0" data-tool="rect" title="Khung vuông"><i data-lucide="square" class="w-4 h-4 md:w-5 md:h-5"></i></button>
         <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition shrink-0" data-tool="circle" title="Vẽ hình tròn"><i data-lucide="circle" class="w-4 h-4 md:w-5 md:h-5"></i></button>
@@ -140,10 +146,10 @@
     </div>
     
     <!-- Main Workspace (Nằm dưới Canvas, chứa nội dung câu hỏi) -->
-    <div id="reviewContentArea" class="flex-1 relative flex flex-col w-full bg-slate-950 bg-grid overflow-hidden z-20">
+    <div id="reviewContentArea" class="flex-1 relative flex flex-col w-full bg-slate-950 bg-grid overflow-x-hidden overflow-y-auto z-20">
       
       <!-- 1/3 Top: Khung Câu Hỏi (Mở rộng tràn mép) -->
-      <div class="w-full min-h-[33vh] bg-slate-900/60 border-b border-emerald-900/30 flex items-center justify-center p-4 md:p-8 pointer-events-none shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+      <div class="w-full min-h-[33vh] bg-slate-900/60 border-b border-emerald-900/30 flex items-center justify-center p-4 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
         <div class="w-full px-2 md:px-12 text-center flex flex-col items-center">
             <div class="mb-4 inline-flex items-center bg-slate-950/80 border border-slate-700 text-slate-400 px-6 py-2 rounded-full text-sm font-bold tracking-widest uppercase shadow-md">
               <i data-lucide="target" class="w-4 h-4 mr-2 text-emerald-500"></i> Tọa độ phân tích
@@ -154,7 +160,7 @@
       </div>
 
       <!-- 2/3 Bottom: Bảng Nháp Trống -->
-      <div class="flex-1 w-full bg-transparent flex items-center justify-center pointer-events-none">
+      <div class="flex-1 w-full min-h-[50vh] bg-transparent flex items-center justify-center">
           <span class="text-slate-800 text-3xl md:text-5xl font-black uppercase tracking-[0.5em] opacity-30 select-none flex flex-col items-center">
               <i data-lucide="edit-3" class="w-16 h-16 mb-4 opacity-50"></i>
               Khu Vực Bảng Nháp
@@ -162,12 +168,12 @@
       </div>
 
       <!-- Floating Nav Buttons (Z-index 40 để nằm trên Canvas) -->
-      <div class="absolute inset-y-0 left-2 md:left-6 flex items-center z-40 pointer-events-none">
+      <div class="absolute inset-y-0 left-2 md:left-6 flex items-center z-40 pointer-events-none fixed-nav">
          <button onclick="prevReviewSlide()" class="pointer-events-auto bg-slate-800/80 hover:bg-slate-700 text-white p-3 md:p-5 rounded-full backdrop-blur border border-slate-600 shadow-lg transition hover:-translate-x-1">
             <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8"></i>
          </button>
       </div>
-      <div class="absolute inset-y-0 right-2 md:right-6 flex items-center z-40 pointer-events-none">
+      <div class="absolute inset-y-0 right-2 md:right-6 flex items-center z-40 pointer-events-none fixed-nav">
          <button onclick="nextReviewSlide()" class="pointer-events-auto bg-emerald-600/80 hover:bg-emerald-500 text-white p-3 md:p-5 rounded-full backdrop-blur border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition hover:translate-x-1">
             <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8"></i>
          </button>
@@ -649,7 +655,7 @@
     const canvas = document.getElementById('reviewCanvas');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
-    let currentTool = 'pen';
+    let currentTool = 'pointer'; // SỬA ĐỔI: Mặc định là pointer
     let currentColor = '#ef4444'; // Mặc định đỏ
     let startX, startY;
     let snapshot;
@@ -748,6 +754,7 @@
     };
 
     const startDraw = (e) => {
+        if (currentTool === 'pointer') return; // Không vẽ nếu là con trỏ
         isDrawing = true;
         const pos = getMousePos(e);
         startX = pos.x;
@@ -758,7 +765,7 @@
     };
 
     const drawing = (e) => {
-        if (!isDrawing) return;
+        if (!isDrawing || currentTool === 'pointer') return;
         e.preventDefault(); 
         const pos = getMousePos(e);
 
@@ -818,7 +825,7 @@
             btn.classList.add('ring-2', 'ring-white', 'scale-110');
             btn.classList.remove('opacity-50');
             currentColor = btn.dataset.color;
-            if(currentTool === 'eraser') {
+            if(currentTool === 'eraser' || currentTool === 'pointer') {
                document.querySelector('[data-tool="pen"]').click();
             }
         }
@@ -833,6 +840,14 @@
             btn.classList.add('bg-slate-700', 'text-white', 'shadow-inner');
             btn.classList.remove('text-slate-400');
             currentTool = btn.dataset.tool;
+
+            // SỬA ĐỔI: Quản lý pointer-events
+            const cvs = document.getElementById('reviewCanvas');
+            if(currentTool === 'pointer') {
+                cvs.classList.add('pointer-events-none');
+            } else {
+                cvs.classList.remove('pointer-events-none');
+            }
         }
     });
 
@@ -891,6 +906,10 @@
       show(modal);
       modal.style.display = 'flex'; // Ép kiểu Flex để bung full màn hình
       
+      // SỬA ĐỔI: Tự động chọn lại nút "Con Trỏ" để không vẽ bậy khi mới mở
+      const pointerBtn = document.querySelector('[data-tool="pointer"]');
+      if (pointerBtn) pointerBtn.click();
+
       setTimeout(() => {
           initCanvas();
           window.addEventListener('resize', initCanvas);
