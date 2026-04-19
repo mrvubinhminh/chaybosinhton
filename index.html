@@ -363,7 +363,7 @@
     <div class="bg-slate-900/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-700 max-w-lg w-full text-center relative z-10">
       
       <div id="resIconContainer" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-slate-800 border-4 transition-all duration-500 shadow-lg">
-        <i data-lucide="medal" id="resIcon" class="w-12 h-12"></i>
+        <!-- SVG will be injected here -->
       </div>
 
       <h2 id="resMainTitle" class="text-4xl font-black mb-2 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]"></h2>
@@ -715,11 +715,22 @@
 
     // --- JS CHO PHÂN TÍCH BĂNG HÌNH & CANVAS DRAWING ---
     function initCanvas() {
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        const container = canvas.parentElement;
+        if (!container) return;
+        
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        
+        // Khôi phục lại trạng thái nét bút sau khi resize
+        if (currentTool === 'pen' || currentTool === 'line' || currentTool === 'rect' || currentTool === 'circle') {
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 4;
+        } else {
+            ctx.strokeStyle = 'rgba(0,0,0,1)';
+            ctx.lineWidth = 40;
+        }
     }
 
     const getMousePos = (e) => {
@@ -859,19 +870,23 @@
       }
 
       currentReviewIdx = 0;
-      show($('reviewModal'));
+      const modal = $('reviewModal');
+      show(modal);
+      modal.style.display = 'flex'; // Ép kiểu Flex để bung full màn hình
       
       setTimeout(() => {
           initCanvas();
           window.addEventListener('resize', initCanvas);
-      }, 50);
+      }, 100);
       
       window.renderReviewSlide();
       lucide.createIcons();
     };
 
     window.closeReviewModal = () => {
-      hide($('reviewModal'));
+      const modal = $('reviewModal');
+      hide(modal);
+      modal.style.display = 'none';
       window.removeEventListener('resize', initCanvas);
     };
 
