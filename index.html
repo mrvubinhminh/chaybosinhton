@@ -87,80 +87,85 @@
     </div>
   </div>
 
-  <!-- Modal Xem Lại Băng Hình (Tràn viền + Công cụ vẽ nổi) -->
-  <div id="reviewModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[150] hidden animate-fadeIn">
+  <!-- Modal Xem Lại Băng Hình (Tràn viền + Bố cục 1/3 - 2/3) -->
+  <div id="reviewModal" class="fixed inset-0 bg-slate-950 z-[150] hidden flex-col animate-fadeIn">
     
-    <!-- Canvas Drawing Layer (Phủ toàn bộ màn hình) -->
-    <canvas id="reviewCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-30 touch-none"></canvas>
-
-    <!-- Floating Header & Toolbar (Z-index cực cao để không bị canvas đè) -->
-    <div class="absolute top-0 left-0 w-full px-4 md:px-8 py-4 flex justify-between items-center z-50 pointer-events-none">
-      <div class="flex items-center space-x-3 w-1/4 md:w-1/3">
-        <i data-lucide="map" class="w-8 h-8 text-emerald-500 hidden sm:block drop-shadow-md"></i>
-        <h2 class="text-sm md:text-xl font-black text-white uppercase tracking-widest hidden sm:block drop-shadow-md">Phân Tích Băng Hình</h2>
+    <!-- Top Bar Nhỏ Gọn (Z-index 40) -->
+    <div class="h-16 bg-slate-900 border-b border-slate-800 px-4 md:px-6 flex justify-between items-center shadow-md z-40">
+      
+      <!-- Box Trái: Info -->
+      <div class="flex items-center space-x-4 w-1/3">
+         <div class="bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center border border-red-500/30">
+            <i data-lucide="skull" class="w-4 h-4 mr-1.5"></i> <span id="reviewWrongCount">0</span> Mất mạng
+         </div>
+         <div class="text-emerald-400 font-mono font-black text-lg tracking-widest bg-slate-950 px-3 py-1 rounded-lg border border-emerald-500/30" id="reviewSlideCounter">1 / 5</div>
       </div>
 
-      <!-- Drawing Toolbar (Cho phép click) -->
-      <div class="flex items-center space-x-2 md:space-x-3 bg-slate-900/90 border-2 border-slate-700 p-2 md:p-3 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-md pointer-events-auto">
-        <button class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-red-500 ring-2 ring-white color-btn shadow-sm transition-transform hover:scale-110" data-color="#ef4444"></button>
-        <button class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-500 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform hover:scale-110" data-color="#3b82f6"></button>
-        <button class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-emerald-400 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform hover:scale-110" data-color="#34d399"></button>
-        <button class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-yellow-400 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform hover:scale-110" data-color="#facc15"></button>
-        <button class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform hover:scale-110" data-color="#ffffff"></button>
+      <!-- Box Giữa: Drawing Toolbar -->
+      <div class="flex items-center space-x-1 md:space-x-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-700 shadow-inner">
+        <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-red-500 ring-2 ring-white color-btn shadow-sm transition-transform scale-110" data-color="#ef4444"></button>
+        <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-blue-500 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform" data-color="#3b82f6"></button>
+        <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-emerald-400 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform" data-color="#34d399"></button>
+        <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-yellow-400 opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform" data-color="#facc15"></button>
+        <button class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white opacity-50 hover:opacity-100 color-btn shadow-sm transition-transform" data-color="#ffffff"></button>
         
-        <div class="w-px h-8 bg-slate-700 mx-1 md:mx-2"></div>
+        <div class="w-px h-5 bg-slate-700 mx-1 md:mx-2"></div>
         
-        <button class="p-2 md:p-2.5 bg-slate-700 rounded-xl text-white tool-btn shadow-inner transition" data-tool="pen" title="Bút vẽ tự do"><i data-lucide="pen" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-        <button class="p-2 md:p-2.5 hover:bg-slate-800 rounded-xl text-slate-400 tool-btn transition" data-tool="line" title="Kẻ đường thẳng"><i data-lucide="minus" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-        <button class="p-2 md:p-2.5 hover:bg-slate-800 rounded-xl text-slate-400 tool-btn transition" data-tool="rect" title="Vẽ khung chữ nhật"><i data-lucide="square" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-        <!-- Nút hình tròn mới thêm -->
-        <button class="p-2 md:p-2.5 hover:bg-slate-800 rounded-xl text-slate-400 tool-btn transition" data-tool="circle" title="Vẽ đường tròn/elip"><i data-lucide="circle" class="w-5 h-5 md:w-6 md:h-6"></i></button>
-        <button class="p-2 md:p-2.5 hover:bg-slate-800 rounded-xl text-slate-400 tool-btn transition" data-tool="eraser" title="Cục tẩy"><i data-lucide="eraser" class="w-5 h-5 md:w-6 md:h-6"></i></button>
+        <button class="p-1.5 md:p-2 bg-slate-700 rounded-lg text-white tool-btn shadow-inner transition" data-tool="pen" title="Bút vẽ"><i data-lucide="pen" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition" data-tool="line" title="Kẻ thẳng"><i data-lucide="minus" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition" data-tool="rect" title="Khung vuông"><i data-lucide="square" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition" data-tool="circle" title="Vẽ hình tròn"><i data-lucide="circle" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 tool-btn transition" data-tool="eraser" title="Cục tẩy"><i data-lucide="eraser" class="w-4 h-4 md:w-5 md:h-5"></i></button>
         
-        <div class="w-px h-8 bg-slate-700 mx-1 md:mx-2"></div>
+        <div class="w-px h-5 bg-slate-700 mx-1 md:mx-2"></div>
         
-        <button class="p-2 md:p-2.5 hover:bg-red-500/20 text-red-400 rounded-xl transition" onclick="clearCanvas()" title="Xóa toàn bộ bảng"><i data-lucide="trash-2" class="w-5 h-5 md:w-6 md:h-6"></i></button>
+        <button class="p-1.5 md:p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition" onclick="clearCanvas()" title="Xóa nháp"><i data-lucide="trash-2" class="w-4 h-4 md:w-5 md:h-5"></i></button>
       </div>
 
-      <div class="w-1/4 md:w-1/3 flex justify-end pointer-events-auto">
-        <button onclick="closeReviewModal()" class="text-slate-400 hover:text-emerald-500 bg-slate-900/80 hover:bg-slate-800 p-3 md:p-4 rounded-2xl transition border border-slate-700 shadow-lg">
-          <i data-lucide="x" class="w-6 h-6 md:w-8 md:h-8"></i>
+      <!-- Box Phải: Đóng -->
+      <div class="w-1/3 flex justify-end">
+        <button onclick="closeReviewModal()" class="text-slate-400 hover:text-emerald-500 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition flex items-center text-sm font-bold border border-slate-700">
+          <i data-lucide="power" class="w-4 h-4 mr-1"></i> Đóng
         </button>
       </div>
     </div>
     
-    <!-- Content Area (Nằm dưới Canvas, căn giữa màn hình) -->
-    <div id="reviewContentArea" class="absolute inset-0 flex flex-col justify-center items-center p-4 z-20 pointer-events-none">
-      <div class="flex flex-col items-center justify-center w-full max-w-[95%] xl:max-w-7xl">
-         <div class="mb-6 inline-block bg-red-950/90 border border-red-800 text-red-400 px-8 py-3 rounded-full text-sm md:text-base font-black tracking-widest uppercase shadow-2xl backdrop-blur">
-          Tọa độ tử nạn nhiều nhất
-        </div>
-        <!-- Khung câu hỏi được làm siêu lớn -->
-        <div class="bg-slate-900/80 p-8 md:p-16 rounded-[3rem] border-2 border-slate-700/50 w-full shadow-[0_0_80px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-           <h3 id="reviewQuestionText" class="text-2xl md:text-5xl lg:text-6xl font-black text-white mb-12 leading-relaxed text-center drop-shadow-lg"></h3>
-           
-           <div class="flex items-center justify-center space-x-4 text-red-500 font-black text-2xl md:text-4xl bg-slate-950/80 px-10 py-6 rounded-3xl border-2 border-red-500/30 mx-auto w-max shadow-inner">
-            <i data-lucide="users" class="w-10 h-10 md:w-12 md:h-12"></i>
-            <span><span id="reviewWrongCount" class="text-5xl md:text-7xl text-white drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">0</span> Người mất mạng</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Floating Navigation Footer (Z-index cao) -->
-    <div class="absolute bottom-6 left-0 w-full px-6 md:px-12 flex justify-between items-end z-50 pointer-events-none">
-      <button onclick="prevReviewSlide()" class="px-6 py-4 md:px-8 md:py-5 bg-slate-800/90 hover:bg-slate-700 text-white rounded-2xl font-black flex items-center transition shadow-2xl border border-slate-700 backdrop-blur pointer-events-auto text-sm md:text-xl">
-        <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8 mr-2"></i> Trước
-      </button>
+    <!-- Main Workspace (Vùng làm việc) -->
+    <div id="reviewContentArea" class="flex-1 relative flex flex-col w-full bg-slate-950 bg-grid overflow-hidden">
       
-      <div class="flex flex-col items-center bg-slate-900/80 px-8 md:px-12 py-4 md:py-6 rounded-3xl border-2 border-slate-700 backdrop-blur shadow-2xl pointer-events-auto">
-          <span class="text-slate-400 text-xs md:text-sm uppercase font-bold tracking-widest mb-2">Hồ Sơ Tử Nạn</span>
-          <span id="reviewSlideCounter" class="text-emerald-500 font-mono font-black tracking-widest text-3xl md:text-5xl drop-shadow-md">1 / 5</span>
+      <!-- Canvas Drawing Layer (Phủ toàn bộ khu vực flex-1) -->
+      <canvas id="reviewCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-30 touch-none"></canvas>
+
+      <!-- 1/3 Top: Khung Câu Hỏi -->
+      <div class="h-1/3 w-full bg-slate-900/60 border-b border-emerald-900/30 flex items-center justify-center p-4 md:p-8 pointer-events-none z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div class="w-full max-w-6xl text-center">
+            <div class="mb-3 inline-block bg-slate-950/80 border border-slate-700 text-slate-400 px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase shadow-md">
+              <i data-lucide="target" class="w-3 h-3 inline mr-1 text-emerald-500"></i> Tọa độ phân tích
+            </div>
+            <h3 id="reviewQuestionText" class="text-xl md:text-3xl lg:text-4xl font-black text-white leading-relaxed drop-shadow-md"></h3>
+        </div>
       </div>
 
-      <button onclick="nextReviewSlide()" class="px-6 py-4 md:px-8 md:py-5 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded-2xl font-black flex items-center transition shadow-[0_0_30px_rgba(16,185,129,0.5)] border border-emerald-500 backdrop-blur pointer-events-auto text-sm md:text-xl">
-        Sau <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8 ml-2"></i>
-      </button>
+      <!-- 2/3 Bottom: Bảng Nháp Trống -->
+      <div class="h-2/3 w-full bg-transparent flex items-center justify-center z-10 pointer-events-none">
+          <span class="text-slate-800 text-3xl md:text-5xl font-black uppercase tracking-[0.5em] opacity-30 select-none flex flex-col items-center">
+              <i data-lucide="edit-3" class="w-16 h-16 mb-4 opacity-50"></i>
+              Khu Vực Bảng Nháp
+          </span>
+      </div>
+
+      <!-- Floating Nav Buttons (Căn giữa theo chiều dọc) -->
+      <div class="absolute inset-y-0 left-2 md:left-6 flex items-center z-40 pointer-events-none">
+         <button onclick="prevReviewSlide()" class="pointer-events-auto bg-slate-800/80 hover:bg-slate-700 text-white p-3 md:p-5 rounded-full backdrop-blur border border-slate-600 shadow-lg transition hover:-translate-x-1">
+            <i data-lucide="chevron-left" class="w-6 h-6 md:w-8 md:h-8"></i>
+         </button>
+      </div>
+      <div class="absolute inset-y-0 right-2 md:right-6 flex items-center z-40 pointer-events-none">
+         <button onclick="nextReviewSlide()" class="pointer-events-auto bg-emerald-600/80 hover:bg-emerald-500 text-white p-3 md:p-5 rounded-full backdrop-blur border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition hover:translate-x-1">
+            <i data-lucide="chevron-right" class="w-6 h-6 md:w-8 md:h-8"></i>
+         </button>
+      </div>
+
     </div>
   </div>
 
@@ -358,7 +363,7 @@
     <div class="bg-slate-900/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-slate-700 max-w-lg w-full text-center relative z-10">
       
       <div id="resIconContainer" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-slate-800 border-4 transition-all duration-500 shadow-lg">
-        <!-- SVG will be injected here -->
+        <i data-lucide="medal" id="resIcon" class="w-12 h-12"></i>
       </div>
 
       <h2 id="resMainTitle" class="text-4xl font-black mb-2 uppercase tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]"></h2>
@@ -583,6 +588,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     
+    // Đảm bảo không bị sai ID Database khi deploy Vercel
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'exam-app-demo';
 
     let examTimeMinutes = 20; 
@@ -621,7 +627,7 @@
     
     // Battle Royale State
     let totalScore = 0;
-    const LOOT_POINTS = 100;
+    const LOOT_POINTS = 100; // Điểm khi nhặt thính thành công
 
     // Teacher State
     let leaderboardData = [];
@@ -709,8 +715,9 @@
 
     // --- JS CHO PHÂN TÍCH BĂNG HÌNH & CANVAS DRAWING ---
     function initCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
     }
@@ -1099,7 +1106,7 @@
         renderTimer();
         if(timeLeftSec <= 0) {
           clearInterval(timerInterval);
-          submitExam(false); 
+          submitExam(false); // Hết giờ nộp bài -> Tử trận do kẹt bo
         }
       }, 1000);
     }
@@ -1125,7 +1132,7 @@
       lucide.createIcons();
     };
 
-    // LOGIC CHỌN ĐÁP ÁN
+    // LOGIC CHỌN ĐÁP ÁN: TIME PENALTY MODE
     window.selectAnswer = (idx) => {
       if(isProcessing) return;
       isProcessing = true;
@@ -1141,6 +1148,7 @@
         totalScore += LOOT_POINTS;
         updateScoreUI();
         
+        // Hiệu ứng flash emerald
         const overlay = document.createElement('div');
         overlay.className = "fixed inset-0 bg-emerald-500/20 z-50 pointer-events-none transition-opacity duration-300";
         document.body.appendChild(overlay);
@@ -1163,7 +1171,7 @@
         setTimeout(() => {
           if (timeLeftSec <= 0) {
             clearInterval(timerInterval);
-            submitExam(false); 
+            submitExam(false); // Chết ngoài bo
           } else {
             nextQuestion();
           }
